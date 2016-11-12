@@ -558,12 +558,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             updateResponse(words);
         }
 
-        else if((input.contains("angry ") || input.contains("divorce") || input.contains("bully ") || input.contains("bullying ")) && feeling.maxEmotion.equals("anger")) {
+        else if((input.contains("angry") || input.contains("divorce") || input.contains("bully") || input.contains("bullying")) && feeling.maxEmotion.equals("anger")) {
             String words = "Computer: Anger is a natural emotion, it will go away eventually. The main thing is to make sure you don't act rashly";
             updateResponse(words);
         }
 
-        else if((input.contains("I won ") || input.contains("I'm alive ")) && feeling.maxEmotion.equals("happiness")) {
+        else if((input.contains("I won ") || input.contains("I'm alive")) && feeling.maxEmotion.equals("happiness")) {
             String words = "Computer: Great, that's really great, I hope you stay happy and continue your successful endeavors";
             updateResponse(words);
         }
