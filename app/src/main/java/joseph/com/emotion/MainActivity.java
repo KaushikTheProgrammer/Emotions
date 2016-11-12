@@ -1,10 +1,13 @@
 package joseph.com.emotion;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +15,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import clarifai2.api.ClarifaiBuilder;
@@ -42,7 +47,7 @@ import clarifai2.dto.model.output.ClarifaiOutput;
 import clarifai2.dto.prediction.Concept;
 import okhttp3.OkHttpClient;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
 
     private Button selectImageButton;
@@ -73,13 +78,50 @@ public class MainActivity extends AppCompatActivity {
 
     private ClarifaiClient clarclient;
 
+    TextToSpeech t1;
+    int REQUEST_CODE = 9;
 
+    private EditText reply;
+
+    private Button send;
+    private TextView processing;
+
+    private Feeling feeling;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
+        t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    t1.setLanguage(Locale.US);
+                }
+            }
+        });
+
+        reply = (EditText) findViewById(R.id.input);
+
+        processing = (TextView) findViewById(R.id.processing);
+
+        send = (Button) findViewById(R.id.send);
+        send.setOnClickListener(this);
+
+
+        Intent intent = new Intent(MainActivity.this, Receiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, REQUEST_CODE, intent, 0);
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        am.setRepeating(am.RTC_WAKEUP, System.currentTimeMillis(), am.INTERVAL_FIFTEEN_MINUTES / 1, pendingIntent);
+
+
+
+
+
 
         /*
         *
@@ -156,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("RecognizeActivity", "Image: " + imageUri + " resized to " + mBitmap.getWidth()
                                 + "x" + mBitmap.getHeight());
 
+                        processing.setText("Processing....");
 
 
 
@@ -337,15 +380,18 @@ public class MainActivity extends AppCompatActivity {
                         probabilities.add(r.scores.surprise);
 
 
-                        Feeling feeling = new Feeling(emotionNames, probabilities);
+                         processing.setText("");
+
+                    feeling = new Feeling(emotionNames, probabilities);
 
                         System.out.println("feeling: " + feeling.toString());
-                        toSpeak = "Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.";
-                        mTextView.setText(toSpeak);
-                    //    t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+                    toSpeak = "Computer: Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.";
+                    mTextView.setText(toSpeak);
+                    t1.speak(toSpeak.replaceFirst("Computer: ", "").replaceFirst("You", ""), TextToSpeech.QUEUE_FLUSH, null);
 
 
-                        gotOneFace = true;
+
+                    gotOneFace = true;
 
 
                        /* mTextView.append(String.format("\nFace #%1$d \n", count));
@@ -500,6 +546,32 @@ public class MainActivity extends AppCompatActivity {
             throw new IllegalStateException("Cannot use Clarifai client before initialized");
         }
         return clarclient;
+    }
+
+    @Override
+    public void onClick(View view) {
+        String input = reply.getText().toString();
+        mTextView.append("\n\n" + "You: " + input + "\n");
+        reply.getText().clear();
+        if((input.contains("sad") || input.contains("dead") || input.contains("died") || input.contains("dying") || input.contains("divorce ")) && feeling.maxEmotion.equals("sadness")) {
+            String words = "Computer: Don't worry things will always get better";
+            updateResponse(words);
+        }
+
+        else if((input.contains("angry ") || input.contains("divorce") || input.contains("bully ") || input.contains("bullying ")) && feeling.maxEmotion.equals("anger")) {
+            String words = "Computer: Anger is a natural emotion, it will go away eventually. The main thing is to make sure you don't act rashly";
+            updateResponse(words);
+        }
+
+        else if((input.contains("I won ") || input.contains("I'm alive ")) && feeling.maxEmotion.equals("happiness")) {
+            String words = "Computer: Great, that's really great, I hope you stay happy and continue your successful endeavors";
+            updateResponse(words);
+        }
+    }
+
+    public void updateResponse(String message) {
+        mTextView.append("\n" + message);
+        t1.speak(message.replaceFirst("Computer: ", ""), TextToSpeech.QUEUE_FLUSH, null);
     }
 
 
