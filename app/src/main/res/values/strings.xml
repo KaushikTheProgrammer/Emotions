@@ -5,6 +5,7 @@
 
     <string name="faceSubscription_key">94c46ff52466407aa150f4c1278edd04</string>
 
-
+    <string name="clarifai_id">__wtEjwoi7LxQsUm3WmxN9OholiUqJ-8TvP3cg1A</string>
+    <string name="clarifai_secret">QZf6e1F_dMa-WN3IJ5nZ5TJl_97qyoOeKUDH7rdG</string>
 
 </resources>

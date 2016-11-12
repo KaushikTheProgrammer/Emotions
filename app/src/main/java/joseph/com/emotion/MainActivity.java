@@ -1,15 +1,11 @@
 package joseph.com.emotion;
 
-import android.annotation.TargetApi;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
-import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,6 +30,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import clarifai2.api.ClarifaiBuilder;
+import clarifai2.api.ClarifaiClient;
+import clarifai2.api.ClarifaiResponse;
+import clarifai2.dto.input.ClarifaiInput;
+import clarifai2.dto.input.image.ClarifaiImage;
+import clarifai2.dto.model.ConceptModel;
+import clarifai2.dto.model.output.ClarifaiOutput;
+import clarifai2.dto.prediction.Concept;
+import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,12 +65,49 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String>emotionNames = new ArrayList<>();
     public Boolean gotOneFace = false;
 
+    public String toSpeak = "";
+
+
+    public Bitmap imageBitmap;
+    public byte[] imageBytes;
+
+    private ClarifaiClient clarclient;
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /*
+        *
+        *
+        *CLARIFAI STUFF
+        *
+        *
+        * */
+
+        clarclient = new ClarifaiBuilder(getString(R.string.clarifai_id), getString(R.string.clarifai_secret))
+                // Optionally customize HTTP client via a custom OkHttp instance
+                .client(new OkHttpClient.Builder()
+                                .readTimeout(30, TimeUnit.SECONDS) // Increase timeout for poor mobile networks
+
+                                // Log all incoming and outgoing data
+                                // NOTE: You will not want to use the BODY log-level in production, as it will leak your API request details
+                                // to the (publicly-viewable) Android log
+            /*.addInterceptor(new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+              @Override public void log(String logString) {
+                Timber.e(logString);
+              }
+            }).setLevel(HttpLoggingInterceptor.Level.BODY))*/
+                                .build()
+                )
+                .buildSync();
+
+
+
 
         if (client == null) {
             client = new EmotionServiceRestClient(getString(R.string.subscription_key));
@@ -111,7 +155,20 @@ public class MainActivity extends AppCompatActivity {
                         // Add detection log.
                         Log.d("RecognizeActivity", "Image: " + imageUri + " resized to " + mBitmap.getWidth()
                                 + "x" + mBitmap.getHeight());
-                        doRecognize();
+
+
+
+
+                        //Clarifai stuff here?
+                        imageBitmap = mBitmap;
+
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                        imageBytes = stream.toByteArray();
+
+                        System.out.println("About to send to clarifai");
+                        sendImageBytesToClarifai(imageBytes);
+
                     }
                 }
                 break;
@@ -120,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void doRecognize() {
+    public void sendToEmotion() {
 
         try {
             new doRequest(false).execute();
@@ -256,16 +313,17 @@ public class MainActivity extends AppCompatActivity {
             if (!gotOneFace) {
 
             if (this.useFaceRectangles == false) {
-                mTextView.append("\n\nRecognizing emotions with auto-detected face rectangles...\n");
+                //mTextView.append("\n\nRecognizing emotions with auto-detected face rectangles...\n");
             } else {
-                mTextView.append("\n\nRecognizing emotions with existing face rectangles from Face API...\n");
+                //mTextView.append("\n\nRecognizing emotions with existing face rectangles from Face API...\n");
             }
             if (e != null) {
                 mTextView.setText("Error: " + e.getMessage());
                 this.e = null;
             } else {
-                if (result.size() == 0) {
-                    mTextView.append("No emotion detected :(");
+                if (result.size() == 0) {   //no face detected, give general response
+                    toSpeak = "What's up?";
+
                 } else {
                     RecognizeResult r  = result.get(0);
 
@@ -282,7 +340,10 @@ public class MainActivity extends AppCompatActivity {
                         Feeling feeling = new Feeling(emotionNames, probabilities);
 
                         System.out.println("feeling: " + feeling.toString());
-                        mTextView.setText("Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.");
+                        toSpeak = "Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.";
+                        mTextView.setText(toSpeak);
+                    //    t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+
 
                         gotOneFace = true;
 
@@ -302,6 +363,8 @@ public class MainActivity extends AppCompatActivity {
             }
             }
 
+            mTextView.setText(toSpeak);
+            //    t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
         }
     }
 
@@ -347,33 +410,8 @@ public class MainActivity extends AppCompatActivity {
             case 1: {
                 //if request is cancelled, the results arrays are empty
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (Settings.System.canWrite(this)){
-                            launchCamera();
-                        }
-                        else {
 
-                            new AlertDialog.Builder(this)
-                                    .setTitle("Allow Access to Camera")
-                                    .setMessage("Please let us use the camera in order to analyze your emotions.")
-                                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                                        @TargetApi(Build.VERSION_CODES.M)
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                   //         Intent intent = new Intent();
-                                   //         startActivity(intent);
-                                            launchCamera();
-
-                                        }
-                                    })
-                                    .setIcon(android.R.drawable.ic_dialog_info)
-                                    .show();
-
-
-                        }
-                    }*/
                     launchCamera();
-                    //   setSound(desiredSoundType);
                 } else {
                     //permission denied
                     Toast.makeText(MainActivity.this, "Permission denied to access camera", Toast.LENGTH_SHORT).show();
@@ -383,6 +421,86 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    private void sendImageBytesToClarifai(@NonNull final byte[] imageBytes) {
+        System.out.println("Sending image to Clarifai");
+        // Now we will upload our image to the Clarifai API
+      ///  setBusy(true);
+
+        // Make sure we don't show a list of old concepts while the image is being uploaded
+    //    adapter.setData(Collections.<Concept>emptyList());
+
+        new AsyncTask<Void, Void, ClarifaiResponse<List<ClarifaiOutput<Concept>>>>() {
+            @Override protected ClarifaiResponse<List<ClarifaiOutput<Concept>>> doInBackground(Void... params) {
+
+                // The default Clarifai model that identifies concepts in images
+                 final ConceptModel generalModel = clarifaiClient().getDefaultModels().generalModel();
+
+                // Use this model to predict, with the image that the user just selected as the input
+                return generalModel.predict()
+                        .withInputs(ClarifaiInput.forImage(ClarifaiImage.of(imageBytes)))
+                        .executeSync();
+            }
+
+            @Override protected void onPostExecute(ClarifaiResponse<List<ClarifaiOutput<Concept>>> response) {
+        //        setBusy(false);
+                if (!response.isSuccessful()) {
+                    return;
+                }
+                final List<ClarifaiOutput<Concept>> predictions = response.get();
+                if (predictions.isEmpty()) {
+                    return;
+                }
+                System.out.println("predictions.get(0).data() = " + predictions.get(0).data());
+                List<Concept> dataList = predictions.get(0).data();
+                System.out.println("First data point:" + dataList.get(0).name());
+                String firstDataPoint = dataList.get(0).name();
+
+                Boolean isPerson = true;
+                for (int i = 0; i < dataList.size(); i++) {
+                    if (dataList.get(i).name().equals("no person")) {
+                        System.out.println("NO PERSON detected in image");
+                        isPerson = false;
+                    }
+                }
+                if (isPerson) {
+                    System.out.println("Person is detected!");
+                    //do microsoft stuff.
+                    sendToEmotion();
+                    System.out.println("Sending to emotion");
+                }
+        //        int i = 0;
+              //  while (firstDataPoint.equals("no person") || firstDataPoint.equals("indoors")){
+
+                if (firstDataPoint.equals("no person")) {
+                    firstDataPoint = dataList.get(1).name();
+//                    i++;
+                    System.out.println("corrected firstdatapoint = " + firstDataPoint);
+                }
+             //   }
+                if  (!isPerson) {
+                    String message = "Oh boy, you should tell me about that " + firstDataPoint;
+                    mTextView.setText(message);
+                }
+
+
+
+             //   imageView.setImageBitmap(BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length));
+            }
+
+
+        }.execute();
+    }
+
+
+    @NonNull
+    public ClarifaiClient clarifaiClient() {
+        final ClarifaiClient clarclient = this.clarclient;
+        if (clarclient == null) {
+            throw new IllegalStateException("Cannot use Clarifai client before initialized");
+        }
+        return clarclient;
+    }
 
 
 }

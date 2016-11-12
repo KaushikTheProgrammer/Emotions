@@ -14,8 +14,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/textView" />
+        android:id="@+id/textView"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -29,12 +30,31 @@
         android:minWidth="30dp"/>
 
     <EditText
-        android:layout_width="match_parent"
+        android:layout_width="210dp"
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/pickImageButton"
         android:layout_toEndOf="@+id/pickImageButton"
         android:layout_marginLeft="10dp"
+        android:id="@+id/input"
         android:layout_marginStart="10dp"
-        android:layout_height="90px" />
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send"
+        android:id="@+id/send"
+        android:layout_toRightOf="@id/input"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/processing"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
 
 </RelativeLayout>
