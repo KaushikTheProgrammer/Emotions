@@ -1,44 +1,38 @@
 package joseph.com.emotion;
 
-import android.app.Activity;
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.microsoft.projectoxford.emotion.EmotionServiceClient;
 import com.microsoft.projectoxford.emotion.EmotionServiceRestClient;
 import com.microsoft.projectoxford.emotion.contract.FaceRectangle;
 import com.microsoft.projectoxford.emotion.contract.RecognizeResult;
-import com.microsoft.projectoxford.emotion.contract.Scores;
 import com.microsoft.projectoxford.emotion.rest.EmotionServiceException;
 import com.microsoft.projectoxford.face.FaceServiceRestClient;
 import com.microsoft.projectoxford.face.contract.Face;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -96,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
                 mTextView.setText("");
 
-                Intent intent = new Intent(MainActivity.this, SelectImageActivity.class);
-                startActivityForResult(intent, REQUEST_SELECT_IMAGE);
+                requestCameraPermission();  //will launch camera intent after
+
             }
 
         });
@@ -336,6 +330,59 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    public void launchCamera() {
+        Intent intent = new Intent(MainActivity.this, SelectImageActivity.class);
+        startActivityForResult(intent, REQUEST_SELECT_IMAGE);
+    }
+
+
+    public void requestCameraPermission() {
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.CAMERA}, 1);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults){
+        switch (requestCode) {
+            case 1: {
+                //if request is cancelled, the results arrays are empty
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (Settings.System.canWrite(this)){
+                            launchCamera();
+                        }
+                        else {
+
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Allow Access to Camera")
+                                    .setMessage("Please let us use the camera in order to analyze your emotions.")
+                                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                                        @TargetApi(Build.VERSION_CODES.M)
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                   //         Intent intent = new Intent();
+                                   //         startActivity(intent);
+                                            launchCamera();
+
+                                        }
+                                    })
+                                    .setIcon(android.R.drawable.ic_dialog_info)
+                                    .show();
+
+
+                        }
+                    }*/
+                    launchCamera();
+                    //   setSound(desiredSoundType);
+                } else {
+                    //permission denied
+                    Toast.makeText(MainActivity.this, "Permission denied to access camera", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+        }
+    }
+
 
 
 }
