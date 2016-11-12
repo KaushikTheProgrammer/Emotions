@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Emotion</string>
+
+    <string name="subscription_key">d143ab1a516747bf876a536b0af83a84</string>   <!--Emotion api-->
+
+    <string name="faceSubscription_key">94c46ff52466407aa150f4c1278edd04</string>
+
+
+
+</resources>
