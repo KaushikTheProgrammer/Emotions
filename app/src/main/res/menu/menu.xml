@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu android:id="@+id/options"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item
+        android:id="@+id/journal"
+        android:title="Journal" />
+
+    <item
+        android:id="@+id/stat"
+        android:title="Statistics" />
+
+
+</menu>

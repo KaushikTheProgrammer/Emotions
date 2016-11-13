@@ -2,6 +2,7 @@ package joseph.com.emotion;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,6 +14,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,6 +34,9 @@ import com.microsoft.projectoxford.face.contract.Face;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +55,10 @@ import clarifai2.dto.prediction.Concept;
 import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+
+
+    public static String journalFileName = "journal.txt";
+    public static String statsFileName = "stats.txt";
 
 
     private Button selectImageButton;
@@ -76,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public Bitmap imageBitmap;
     public byte[] imageBytes;
 
+    Menu mainMenu = null;
+
     private ClarifaiClient clarclient;
 
     TextToSpeech t1;
@@ -88,12 +101,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Feeling feeling;
 
+    public static Context mContext;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mContext = this;
 
 
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -365,6 +381,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 this.e = null;
             } else {
                 if (result.size() == 0) {   //no face detected, give general response
+                    processing.setText("");
                     toSpeak = "What's up?";
 
                 } else {
@@ -481,6 +498,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 // The default Clarifai model that identifies concepts in images
                  final ConceptModel generalModel = clarifaiClient().getDefaultModels().generalModel();
+                System.out.println("step1");
 
                 // Use this model to predict, with the image that the user just selected as the input
                 return generalModel.predict()
@@ -490,6 +508,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override protected void onPostExecute(ClarifaiResponse<List<ClarifaiOutput<Concept>>> response) {
         //        setBusy(false);
+                System.out.println("step 1.1");
                 if (!response.isSuccessful()) {
                     return;
                 }
@@ -497,18 +516,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (predictions.isEmpty()) {
                     return;
                 }
+                System.out.println("step 2");
                 System.out.println("predictions.get(0).data() = " + predictions.get(0).data());
                 List<Concept> dataList = predictions.get(0).data();
                 System.out.println("First data point:" + dataList.get(0).name());
                 String firstDataPoint = dataList.get(0).name();
 
                 Boolean isPerson = true;
-                for (int i = 0; i < dataList.size(); i++) {
+                if (dataList.toString().contains("no person")){
+                    isPerson = false;
+                }
+                /*for (int i = 0; i < dataList.size(); i++) {
                     if (dataList.get(i).name().equals("no person")) {
                         System.out.println("NO PERSON detected in image");
                         isPerson = false;
                     }
-                }
+                }*/
                 if (isPerson) {
                     System.out.println("Person is detected!");
                     //do microsoft stuff.
@@ -526,8 +549,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
              //   }
                 if  (!isPerson) {
                     String message = "Oh boy, you should tell me about that " + firstDataPoint;
-                    mTextView.setText(message);
+                    processing.setText("");
+                    updateResponse(message);
                 }
+
 
 
 
@@ -553,25 +578,76 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String input = reply.getText().toString();
         mTextView.append("\n\n" + "You: " + input + "\n");
         reply.getText().clear();
-        if((input.contains("sad") || input.contains("dead") || input.contains("died") || input.contains("dying") || input.contains("divorce ")) && feeling.maxEmotion.equals("sadness")) {
-            String words = "Computer: Don't worry things will always get better";
-            updateResponse(words);
+        if (feeling != null) {
+            if ((input.contains("sad") || input.contains("dead") || input.contains("died") || input.contains("dying") || input.contains("divorce ")) && feeling.maxEmotion.equals("sadness")) {
+                String words = "Computer: Don't worry things will always get better";
+                updateResponse(words);
+            } else if ((input.contains("angry") || input.contains("divorce") || input.contains("bully") || input.contains("bullying")) && feeling.maxEmotion.equals("anger")) {
+                String words = "Computer: Anger is a natural emotion, it will go away eventually. The main thing is to make sure you don't act rashly";
+                updateResponse(words);
+            } else if ((input.contains("I won ") || input.contains("I'm alive")) && feeling.maxEmotion.equals("happiness")) {
+                String words = "Computer: Great, that's really great, I hope you stay happy and continue your successful endeavors";
+                updateResponse(words);
+            }
         }
 
-        else if((input.contains("angry") || input.contains("divorce") || input.contains("bully") || input.contains("bullying")) && feeling.maxEmotion.equals("anger")) {
-            String words = "Computer: Anger is a natural emotion, it will go away eventually. The main thing is to make sure you don't act rashly";
-            updateResponse(words);
-        }
+        writeToFile(journalFileName, "\n\n" + "You: " + input + "\n");
 
-        else if((input.contains("I won ") || input.contains("I'm alive")) && feeling.maxEmotion.equals("happiness")) {
-            String words = "Computer: Great, that's really great, I hope you stay happy and continue your successful endeavors";
-            updateResponse(words);
-        }
     }
 
     public void updateResponse(String message) {
         mTextView.append("\n" + message);
         t1.speak(message.replaceFirst("Computer: ", ""), TextToSpeech.QUEUE_FLUSH, null);
+        writeToFile(journalFileName, "\n" + message);
+    }
+
+    public void writeToFile(String filename, String text){
+        File file = new File(MainActivity.this.getFilesDir(), filename);
+        System.out.println("file location: " + file.getAbsolutePath());
+        FileOutputStream outputStream;
+        try {
+            outputStream = openFileOutput(filename, Context.MODE_APPEND);
+            outputStream.write(text.getBytes());
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+// Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu, menu);
+        mainMenu = menu;
+        return true;
+    }
+
+
+    //Menu press should open 3 dot menu
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            mainMenu.performIdentifierAction(R.id.options, 0);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.journal:
+                Intent intent = new Intent(this, Journal.class);
+                this.startActivity(intent);
+                break;
+            case R.id.stat:
+                // another startActivity, this is for item with id "menu_item2"
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+        return true;
     }
 
 
