@@ -646,6 +646,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.stat:
                 // another startActivity, this is for item with id "menu_item2"
+                Intent intent2 = new Intent(this, Statistics.class);
+                this.startActivity(intent2);
                 break;
             default:
                 return super.onOptionsItemSelected(item);

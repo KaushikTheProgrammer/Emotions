@@ -34,4 +34,5 @@ dependencies {
 
     compile "com.clarifai.clarifai-api2:core:2.0.2"
 
+
 }

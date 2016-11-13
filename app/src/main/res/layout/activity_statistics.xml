@@ -10,4 +10,72 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="joseph.com.emotion.Statistics">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Anger: "
+        android:id="@+id/anger"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fear: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/anger"
+        android:id="@+id/fear"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Disgust: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/fear"
+        android:id="@+id/disgust"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Surprised: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/disgust"
+        android:id="@+id/surprise"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sadness: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/surprise"
+        android:id="@+id/sadness"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contempt: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/sadness"
+        android:id="@+id/contempt"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Happiness: "
+        android:layout_marginTop="18dp"
+        android:layout_below="@id/contempt"
+        android:id="@+id/happiness"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
 </RelativeLayout>
