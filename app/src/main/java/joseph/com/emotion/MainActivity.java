@@ -401,10 +401,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     feeling = new Feeling(emotionNames, probabilities);
 
-                        System.out.println("feeling: " + feeling.toString());
+
+
+                    System.out.println("feeling: " + feeling.toString());
                     toSpeak = "Computer: Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.";
                     mTextView.setText(toSpeak);
                     t1.speak(toSpeak.replaceFirst("Computer: ", "").replaceFirst("You", ""), TextToSpeech.QUEUE_FLUSH, null);
+
+                    writeToFile(statsFileName, feeling.maxEmotion + "\n");
 
 
 
@@ -598,7 +602,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void updateResponse(String message) {
         mTextView.append("\n" + message);
         t1.speak(message.replaceFirst("Computer: ", ""), TextToSpeech.QUEUE_FLUSH, null);
-        writeToFile(journalFileName, "\n" + message);
+        writeToFile(journalFileName, "\n" + message + "\n");
     }
 
     public void writeToFile(String filename, String text){

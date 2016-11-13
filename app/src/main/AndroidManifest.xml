@@ -19,8 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SelectImageActivity"></activity>
-        <activity android:name=".Journal"></activity>
+        <activity android:name=".SelectImageActivity" />
+        <activity android:name=".Journal" />
+        <activity android:name=".Statistics"></activity>
     </application>
 
 </manifest>
