@@ -403,8 +403,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+                    String feelingWord = feeling.maxEmotion;
+                    String adj = "";
+                    if (feelingWord.equals("happiness"))adj = "happy";
+                    else if (feelingWord.equals("sadness"))adj = "sad";
+                    else if (feelingWord.equals("anger"))adj = "angry";
+                    else if (feelingWord.equals("contempt"))adj = "contemptuous";
+                    else if (feelingWord.equals("fear"))adj = "scared";
+                    else if (feelingWord.equals("surprise"))adj = "surprised";
+                    else if (feelingWord.equals("disgust"))adj = "disgusted";
+
                     System.out.println("feeling: " + feeling.toString());
-                    toSpeak = "Computer: Wow, you sure are feeling " + feeling.maxEmotion + " today. Tell me why.";
+                    toSpeak = "Computer: Hey there. It looks like you are feeling " + adj + " today. Want to share why?";
                     mTextView.setText(toSpeak);
                     t1.speak(toSpeak.replaceFirst("Computer: ", "").replaceFirst("You", ""), TextToSpeech.QUEUE_FLUSH, null);
 

@@ -43,13 +43,23 @@ public class Statistics extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        angerView.setText("Anger: " + Double.toString(anger));
-        sadnessView.setText("Sadness: " + Double.toString(sadness));
-        disgustView.setText("Disgust: " + Double.toString(disgust));
-        surpriseView.setText("Surprise: " + Double.toString(surprise));
-        happinessView.setText("Happiness: " + Double.toString(happiness));
-        contemptView.setText("Contempt: " + Double.toString(contempt));
-        fearView.setText("Fear: " + Double.toString(fear));
+        fearView = (TextView) findViewById(R.id.fear);
+        angerView = (TextView) findViewById(R.id.anger);
+        surpriseView = (TextView) findViewById(R.id.surprise);
+        contemptView = (TextView) findViewById(R.id.contempt);
+        happinessView = (TextView) findViewById(R.id.happiness);
+        sadnessView = (TextView) findViewById(R.id.sadness);
+        disgustView = (TextView) findViewById(R.id.disgust);
+
+
+
+        angerView.setText("Anger: " + Double.toString(anger) + "%");
+        sadnessView.setText("Sadness: " + Double.toString(sadness)+ "%");
+        disgustView.setText("Disgust: " + Double.toString(disgust)+ "%");
+        surpriseView.setText("Surprise: " + Double.toString(surprise)+ "%");
+        happinessView.setText("Happiness: " + Double.toString(happiness)+ "%");
+        contemptView.setText("Contempt: " + Double.toString(contempt)+ "%");
+        fearView.setText("Fear: " + Double.toString(fear)+ "%");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
